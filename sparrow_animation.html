@@ -59,29 +59,73 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-timedimension@1.1.1/dist/leaflet.timedimension.control.css"/>
 </head>
 <body>
-    
-    <div style="position:fixed;top:150px;left:50px;z-index:9999;background:white;padding:10px 14px;border-radius:6px;font-family:sans-serif;font-size:12px;box-shadow:0 1px 4px #0003"><b>Predicted suitability</b><br><span style="color:#159c3c">■</span> prime &nbsp;<span style="color:#7cc96a">■</span> suitable &nbsp;<span style="color:#e5a83b">■</span> marginal<br><span style="font-size:10px;color:#666">dark dots = sightings that month &nbsp;·&nbsp; press play (bottom)</span></div>
-    <div style="position:fixed;top:10px;left:50px;z-index:9999;background:white;padding:8px 14px;border-radius:6px;font-family:sans-serif;font-size:13px;box-shadow:0 1px 4px #0003"><b>Urban House Sparrow — Monthly Habitat Suitability (2024)</b><br>Albuquerque · press play to animate through the year<br><span style="font-size:11px;color:#555">Suitability drivers: 2024 monthly Sentinel-2 NDVI + Landsat LST + NLCD. &nbsp;Sightings: GBIF + eBird, pooled by month across 2024–2026.</span></div>
-    
-    <div id="impChart" style="position:fixed;top:44%;left:12px;
-         transform:translateY(-50%);z-index:9998;background:rgba(255,255,255,.95);
-         padding:10px 12px;border-radius:8px;box-shadow:0 1px 5px #0003;
-         font-family:sans-serif;width:240px;">
-      <div id="impTitle" style="font-size:12px;font-weight:700;margin-bottom:6px;">
-        Feature importance</div>
-      <div id="impBars"></div>
-      <div style="font-size:9px;color:#888;margin-top:6px;line-height:1.3;">
-        Which satellite lens the model leans on. Bars shift by season —
-        correlated features share importance, so read broad patterns.</div>
+
+    <div id="sdmRail" style="position:fixed;top:150px;left:50px;z-index:9998;
+         width:250px;max-height:calc(100vh - 250px);overflow-y:auto;
+         display:flex;flex-direction:column;gap:10px;
+         font-family:sans-serif;">
+
+      <div style="background:rgba(255,255,255,.96);padding:10px 12px;
+           border-radius:8px;box-shadow:0 1px 5px #0003;">
+        <div style="font-size:12px;font-weight:700;margin-bottom:7px;">
+          Predicted suitability &mdash; <span id="keySeason">Spring</span></div>
+        <div id="keyRows"></div>
+        <div style="font-size:9px;color:#888;margin-top:7px;line-height:1.35;">
+          Dark dots = sightings that month &nbsp;&middot;&nbsp; press play at the bottom of the map.</div>
+      </div>
+
+      <div style="background:rgba(255,255,255,.96);padding:10px 12px;
+           border-radius:8px;box-shadow:0 1px 5px #0003;">
+        <div id="impTitle" style="font-size:12px;font-weight:700;margin-bottom:6px;">
+          Feature importance</div>
+        <div id="impBars"></div>
+        <div style="font-size:9px;color:#888;margin-top:6px;line-height:1.35;">
+          Which satellite lens the model leans on. Bars shift by season &mdash;
+          correlated features share importance, so read broad patterns.</div>
+      </div>
+
     </div>
     <script>
     (function(){
-      var IMP = {"data": {"winter": {"built_density": 0.06179446877972718, "impervious": 0.11905610288385746, "temperature": 0.15109768504284662, "ndvi": 0.14684077630694298, "ndwi": 0.14186226460480125, "ndbi": 0.11926703872488724, "ndre": 0.1267425969767389, "savi": 0.13333906668019846}, "spring": {"built_density": 0.04960700934419993, "impervious": 0.13623271495688405, "temperature": 0.23073312065102655, "ndvi": 0.11241377187456385, "ndwi": 0.10730899356903623, "ndbi": 0.14367320302717193, "ndre": 0.1094936348748106, "savi": 0.1105375517023069}, "summer": {"built_density": 0.04956603991980319, "impervious": 0.12232913847015986, "temperature": 0.18629920178547374, "ndvi": 0.11762992458471594, "ndwi": 0.1086274257708619, "ndbi": 0.19335724641729232, "ndre": 0.12142168752157663, "savi": 0.1007693355301164}, "fall": {"built_density": 0.035966106811743025, "impervious": 0.12141734600085535, "temperature": 0.24385439586448618, "ndvi": 0.10831687353906219, "ndwi": 0.10550233833475678, "ndbi": 0.159871034842061, "ndre": 0.1132283780164769, "savi": 0.11184352659055871}}, "labels": {"built_density": "built density (NLCD)", "impervious": "impervious (NLCD)", "temperature": "land surface temp", "ndvi": "NDVI \u2014 greenness", "ndwi": "NDWI \u2014 water", "ndbi": "NDBI \u2014 built-up", "ndre": "NDRE \u2014 veg health", "savi": "SAVI \u2014 soil-adj veg"}, "order": ["built_density", "impervious", "temperature", "ndvi", "ndwi", "ndbi", "ndre", "savi"], "accents": {"winter": "#2c6fb5", "spring": "#159c3c", "summer": "#e8600f", "fall": "#8a3b1e"}};
-      window.updateImpChart = function(season){
-        var d = IMP.data[season]; if(!d) return;
+      var IMP = {"data": {"winter": {"built_density": 0.06179446877972718, "impervious": 0.11905610288385746, "temperature": 0.15109768504284662, "ndvi": 0.14684077630694298, "ndwi": 0.14186226460480125, "ndbi": 0.11926703872488724, "ndre": 0.1267425969767389, "savi": 0.13333906668019846}, "spring": {"built_density": 0.04960700934419993, "impervious": 0.13623271495688405, "temperature": 0.23073312065102655, "ndvi": 0.11241377187456385, "ndwi": 0.10730899356903623, "ndbi": 0.14367320302717193, "ndre": 0.1094936348748106, "savi": 0.1105375517023069}, "summer": {"built_density": 0.04956603991980319, "impervious": 0.12232913847015986, "temperature": 0.18629920178547374, "ndvi": 0.11762992458471594, "ndwi": 0.1086274257708619, "ndbi": 0.19335724641729232, "ndre": 0.12142168752157663, "savi": 0.1007693355301164}, "fall": {"built_density": 0.035966106811743025, "impervious": 0.12141734600085535, "temperature": 0.24385439586448618, "ndvi": 0.10831687353906219, "ndwi": 0.10550233833475678, "ndbi": 0.159871034842061, "ndre": 0.1132283780164769, "savi": 0.11184352659055871}}, "labels": {"built_density": "built density (NLCD)", "impervious": "impervious (NLCD)", "temperature": "land surface temp", "ndvi": "NDVI \u2014 greenness", "ndwi": "NDWI \u2014 water", "ndbi": "NDBI \u2014 built-up", "ndre": "NDRE \u2014 veg health", "savi": "SAVI \u2014 soil-adj veg"}, "order": ["built_density", "impervious", "temperature", "ndvi", "ndwi", "ndbi", "ndre", "savi"], "palette": {"winter": {"marginal": "#cfe3f2", "suitable": "#7fb2e0", "prime": "#2c6fb5", "dot": "#0b1d3a", "accent": "#2c6fb5", "name": "Winter"}, "spring": {"marginal": "#e5a83b", "suitable": "#7cc96a", "prime": "#159c3c", "dot": "#123", "accent": "#159c3c", "name": "Spring"}, "summer": {"marginal": "#ffe08a", "suitable": "#ffab4d", "prime": "#e8600f", "dot": "#5a1a00", "accent": "#e8600f", "name": "Summer"}, "fall": {"marginal": "#e8c39a", "suitable": "#c8863b", "prime": "#8a3b1e", "dot": "#2b1005", "accent": "#8a3b1e", "name": "Fall"}}};
+
+      function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+
+      function paintKey(season){
+        var pal = IMP.palette[season];
+        if(!pal) return;
+        var rows = [["prime","prime"],["suitable","suitable"],
+                    ["marginal","marginal"]];
+        var html = "";
+        rows.forEach(function(r){
+          html += '<div style="display:flex;align-items:center;gap:7px;' +
+                  'margin:3px 0;font-size:11px;">' +
+                  '<span style="width:13px;height:13px;border-radius:3px;' +
+                  'display:inline-block;background:' + pal[r[0]] + ';"></span>' +
+                  '<span>' + r[1] + '</span></div>';
+        });
+        html += '<div style="display:flex;align-items:center;gap:7px;' +
+                'margin:5px 0 0;font-size:11px;">' +
+                '<span style="width:9px;height:9px;border-radius:50%;' +
+                'margin:0 2px;display:inline-block;background:' + pal.dot +
+                ';"></span><span>sightings</span></div>';
+        document.getElementById("keyRows").innerHTML = html;
+        document.getElementById("keySeason").textContent = cap(season);
+      }
+
+      function paintBars(season){
+        var d = IMP.data[season];
+        var title = document.getElementById("impTitle");
+        title.textContent = "Feature importance — " + cap(season);
+        if(!d){
+          document.getElementById("impBars").innerHTML =
+            '<div style="font-size:10px;color:#999;padding:4px 0;">' +
+            'Too few sightings this season to fit a model.</div>';
+          return;
+        }
         var order = IMP.order.slice().sort(function(a,b){ return d[b]-d[a]; });
         var maxv = Math.max.apply(null, order.map(function(k){return d[k];})) || 1;
-        var accent = IMP.accents[season] || "#159c3c";
+        var accent = (IMP.palette[season] || {}).accent || "#159c3c";
         var html = "";
         order.forEach(function(k){
           var w = Math.round(100 * d[k] / maxv);
@@ -90,18 +134,29 @@
                   '<span>' + IMP.labels[k] + '</span>' +
                   '<span style="color:#666;">' + d[k].toFixed(3) + '</span></div>' +
                   '<div style="background:#eee;border-radius:3px;height:7px;">' +
-                  '<div style="width:' + w + '%;height:7px;border-radius:3px;background:' +
-                  accent + ';"></div></div></div>';
+                  '<div style="width:' + w + '%;height:7px;border-radius:3px;' +
+                  'transition:width .25s ease;background:' + accent +
+                  ';"></div></div></div>';
         });
         document.getElementById("impBars").innerHTML = html;
-        document.getElementById("impTitle").textContent =
-          "Feature importance — " + season.charAt(0).toUpperCase()+season.slice(1);
+      }
+
+      // same name the animation watcher and the layer-toggle hook already call
+      window.updateImpChart = function(season){
+        paintKey(season);
+        paintBars(season);
       };
+
       window.addEventListener("load", function(){
         setTimeout(function(){ window.updateImpChart("winter"); }, 300);
       });
     })();
     </script>
+    
+    
+    <div style="position:fixed;top:10px;left:50px;z-index:9999;background:white;padding:8px 14px;border-radius:6px;font-family:sans-serif;font-size:13px;box-shadow:0 1px 4px #0003"><b>Urban House Sparrow — Monthly Habitat Suitability (2024)</b><br>Albuquerque · press play to animate through the year<br><span style="font-size:11px;color:#555">Suitability drivers: 2024 monthly Sentinel-2 NDVI + Landsat LST + NLCD. &nbsp;Sightings: GBIF + eBird, pooled by month across 2024–2026.</span></div>
+    
+    
     
     
     <script>
