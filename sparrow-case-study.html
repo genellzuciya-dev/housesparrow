@@ -321,36 +321,52 @@
     <div class="wrap">
       <span class="eyebrow">What This One Taught Me</span>
       <table class="take">
-        <thead><tr><th>Lesson</th><th>What proved it</th></tr></thead>
+        <thead><tr><th>Skill</th><th>What I did with it</th></tr></thead>
         <tbody>
           <tr class="grp"><td colspan="2">AI Modeling</td></tr>
           <tr>
-            <td>Your negative class defines your question.</td>
-            <td>Changing what &ldquo;absent&rdquo; meant reversed the headline finding.</td>
+            <td>Sampling bias correction</td>
+            <td>Replaced randomly placed absence points with target-group background
+              sampling, drawn from other species' records, so the model measured
+              habitat rather than where birdwatchers go.</td>
           </tr>
           <tr>
-            <td>Importance says a feature matters, never which direction.</td>
-            <td>Temperature ranked first all year while pointing the opposite way.</td>
+            <td>Feature interpretation</td>
+            <td>Separated feature importance, which variable a model relies on, from
+              effect direction, whether the animal prefers more or less of it. They
+              answer different questions and are routinely confused.</td>
           </tr>
           <tr>
-            <td>A metric getting worse can mean the problem got honest.</td>
-            <td>AUC fell from 0.73 to 0.63 once the easy wins disappeared.</td>
+            <td>Evaluation judgment</td>
+            <td>Read a drop in accuracy from 0.73 to 0.63 correctly &mdash; as evidence
+              the corrected model was solving the harder, right problem instead of
+              the easier, wrong one.</td>
           </tr>
           <tr class="grp"><td colspan="2">AI Engineering</td></tr>
           <tr>
-            <td>Config flags, not commented-out code.</td>
-            <td>One variable, both answers, permanent record of each.</td>
+            <td>Reproducible experiments</td>
+            <td>Built the bias correction as a configuration flag, so both versions
+              run from identical code and can be compared directly rather than
+              edited between runs.</td>
           </tr>
           <tr>
-            <td>Split the expensive stage from the presentation stage.</td>
-            <td>A CSS fix shouldn't cost a satellite pass.</td>
+            <td>Pipeline staging</td>
+            <td>Separated slow satellite processing from fast rendering, so changing
+              a layout takes seconds instead of re-running twelve months of
+              imagery queries.</td>
           </tr>
           <tr>
-            <td>Diagnostics run every time, unprompted.</td>
-            <td>Otherwise you're trusting an artifact you never interrogated.</td>
+            <td>Automated diagnostics</td>
+            <td>Wrote reports that print effect direction and seasonal breakdowns on
+              every run, so the model's claims get checked without anyone
+              remembering to check them.</td>
           </tr>
         </tbody>
       </table>
+      <p class="tbl-note" style="margin-top:1.4rem">Stack &mdash; Python &middot;
+        scikit-learn &middot; Google Earth Engine &middot; Sentinel-2 &middot;
+        Landsat 8 &middot; NLCD &middot; GBIF and eBird APIs &middot; Folium
+        &middot; Git / GitHub Pages</p>
     </div>
   </section>
 

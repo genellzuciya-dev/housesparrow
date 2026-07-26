@@ -4,18 +4,20 @@
 
 ---
 
-## What this one taught me
+## Skills applied
 
-| Lesson | What proved it |
+| Skill | What I did with it |
 |---|---|
 | **AI Modeling** | |
-| Your negative class defines your question. | Changing what "absent" meant reversed the headline finding. |
-| Importance says a feature matters, never which direction. | Temperature ranked first all year while pointing the opposite way. |
-| A metric getting worse can mean the problem got honest. | AUC fell from 0.73 to 0.63 once the easy wins disappeared. |
+| Sampling bias correction | Replaced randomly placed absence points with target-group background sampling, drawn from other species' records, so the model measured habitat rather than where birdwatchers go. |
+| Feature interpretation | Separated feature importance, which variable a model relies on, from effect direction, whether the animal prefers more or less of it. |
+| Evaluation judgment | Read a drop in accuracy from 0.73 to 0.63 correctly — as evidence the corrected model was solving the harder, right problem. |
 | **AI Engineering** | |
-| Config flags, not commented-out code. | One variable, both answers, permanent record of each. |
-| Split the expensive stage from the presentation stage. | A CSS fix shouldn't cost a satellite pass. |
-| Diagnostics run every time, unprompted. | Otherwise you're trusting an artifact you never interrogated. |
+| Reproducible experiments | Built the bias correction as a configuration flag, so both versions run from identical code and can be compared directly. |
+| Pipeline staging | Separated slow satellite processing from fast rendering, so changing a layout takes seconds instead of re-running twelve months of imagery queries. |
+| Automated diagnostics | Wrote reports that print effect direction and seasonal breakdowns on every run, so the model's claims get checked without anyone remembering to. |
+
+**Stack** — Python · scikit-learn · Google Earth Engine · Sentinel-2 · Landsat 8 · NLCD · GBIF and eBird APIs · Folium · Git / GitHub Pages
 
 ---
 
