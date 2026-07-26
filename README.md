@@ -4,6 +4,20 @@
 
 ---
 
+## What this one taught me
+
+**Modeling**
+- Your negative class defines your question — changing what "absent" meant reversed the headline finding.
+- Importance says a feature matters. It never says which direction.
+- A metric getting worse can mean the problem got honest — AUC fell once the easy wins disappeared.
+
+**Engineering**
+- Config flags, not commented-out code — one variable, both answers, permanent record.
+- Split the expensive stage from the presentation stage — a CSS fix shouldn't cost a satellite pass.
+- Diagnostics run every time, or you're trusting an artifact you never interrogated.
+
+---
+
 I spent a day building a model that predicts where house sparrows are likely to be in Albuquerque, month by month, across a full calendar year. The output is two interactive maps: one that animates January through December, one that lets you toggle seasons side by side.
 
 Here's the honest accounting of that day. Roughly ten lines of it were machine learning. The rest was learning to ask satellites questions.

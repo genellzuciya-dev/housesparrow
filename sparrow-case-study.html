@@ -102,6 +102,23 @@
   text-transform: uppercase; color: var(--faint); display: flex; flex-wrap: wrap; gap: 0.6rem 1.6rem;
 }
 
+/* ---------- takeaways (opens every case study) ---------- */
+#nls-sparrow .takeaways { display: grid; grid-template-columns: 1fr 1fr; gap: 3.5rem; }
+#nls-sparrow .take-col h3 {
+  font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.24em;
+  text-transform: uppercase; color: var(--lime); margin: 0 0 1.1rem; font-weight: 400;
+}
+#nls-sparrow .take-col ul { list-style: none; margin: 0; padding: 0; }
+#nls-sparrow .take-col li {
+  font-family: 'Instrument Serif', serif; font-size: 1rem; line-height: 1.55;
+  color: var(--cream); padding: 0 0 0.85rem 1.4rem; position: relative;
+}
+#nls-sparrow .take-col li::before {
+  content: ""; position: absolute; left: 0; top: 0.62em;
+  width: 5px; height: 5px; border-radius: 50%; background: var(--lime);
+}
+#nls-sparrow .take-col li span { color: var(--muted); }
+
 /* ---------- SIGNATURE: the year band ---------- */
 #nls-sparrow .band-block { padding-top: 1rem; }
 #nls-sparrow .band {
@@ -214,6 +231,7 @@
 /* ---------- responsive ---------- */
 @media (max-width: 860px) {
   #nls-sparrow .wrap { padding: 0 1.5rem; }
+  #nls-sparrow .takeaways { grid-template-columns: 1fr; gap: 2.2rem; }
   #nls-sparrow section { padding: 4.5rem 0; }
   #nls-sparrow .hero { padding: 4.5rem 0 3rem; }
   #nls-sparrow .hero .wrap { grid-template-columns: 1fr; gap: 2.8rem; justify-items: start; }
@@ -268,6 +286,34 @@
 
     </div>
   </div>
+
+  <!-- ============ TAKEAWAYS (opens every case study) ============ -->
+  <section class="reveal">
+    <div class="wrap">
+      <span class="eyebrow">What This One Taught Me</span>
+      <div class="takeaways">
+
+        <div class="take-col">
+          <h3>Modeling</h3>
+          <ul>
+            <li>Your negative class defines your question. <span>Changing what &ldquo;absent&rdquo; meant reversed the headline finding.</span></li>
+            <li>Importance says a feature matters. <span>It never says which direction.</span></li>
+            <li>A metric getting worse can mean the problem got honest. <span>AUC fell once the easy wins disappeared.</span></li>
+          </ul>
+        </div>
+
+        <div class="take-col">
+          <h3>Engineering</h3>
+          <ul>
+            <li>Config flags, not commented-out code. <span>One variable, both answers, permanent record.</span></li>
+            <li>Split the expensive stage from the presentation stage. <span>A CSS fix shouldn't cost a satellite pass.</span></li>
+            <li>Diagnostics run every time. <span>Otherwise you're trusting an artifact you never interrogated.</span></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
 
   <!-- ============ SIGNATURE: YEAR BAND ============ -->
   <section class="band-block reveal">
