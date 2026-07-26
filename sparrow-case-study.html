@@ -115,6 +115,22 @@
   vertical-align: top;
 }
 
+/* compact skills strip (top of page) */
+#nls-sparrow .skills-strip {
+  display: grid; grid-template-columns: 11rem 1fr; gap: 1rem 2rem;
+  align-items: baseline; margin: 1.8rem 0 0;
+}
+#nls-sparrow .skills-strip dt {
+  font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--lime);
+}
+#nls-sparrow .skills-strip dd {
+  margin: 0; font-family: 'Instrument Serif', serif; font-size: 1.08rem;
+  color: var(--cream); line-height: 1.55;
+}
+#nls-sparrow .skills-strip .sep { color: var(--lime); padding: 0 0.55rem; }
+#nls-sparrow .tbl-wrap { overflow-x: auto; }
+
 /* grouped takeaways table */
 #nls-sparrow table.take { margin-top: 2rem; }
 #nls-sparrow table.take td { font-family: 'Instrument Serif', serif; }
@@ -255,6 +271,8 @@
 /* ---------- responsive ---------- */
 @media (max-width: 860px) {
   #nls-sparrow .wrap { padding: 0 1.5rem; }
+  #nls-sparrow .skills-strip { grid-template-columns: 1fr; gap: 0.4rem 0; }
+  #nls-sparrow .skills-strip dd { margin-bottom: 1.1rem; }
   #nls-sparrow table.take td { display: block; width: auto; padding-right: 0; }
   #nls-sparrow table.take td:first-child { padding-bottom: 0.3rem; border-bottom: none; }
   #nls-sparrow table.take thead { display: none; }
@@ -316,57 +334,22 @@
     </div>
   </div>
 
-  <!-- ============ TAKEAWAYS (opens every case study) ============ -->
+  <!-- ============ SKILLS AT A GLANCE ============ -->
   <section class="reveal">
     <div class="wrap">
-      <span class="eyebrow">What This One Taught Me</span>
-      <table class="take">
-        <thead><tr><th>Skill</th><th>What I did with it</th></tr></thead>
-        <tbody>
-          <tr class="grp"><td colspan="2">AI Modeling</td></tr>
-          <tr>
-            <td>Sampling bias correction</td>
-            <td>Replaced randomly placed absence points with target-group background
-              sampling, drawn from other species' records, so the model measured
-              habitat rather than where birdwatchers go.</td>
-          </tr>
-          <tr>
-            <td>Feature interpretation</td>
-            <td>Separated feature importance, which variable a model relies on, from
-              effect direction, whether the animal prefers more or less of it. They
-              answer different questions and are routinely confused.</td>
-          </tr>
-          <tr>
-            <td>Evaluation judgment</td>
-            <td>Read a drop in accuracy from 0.73 to 0.63 correctly &mdash; as evidence
-              the corrected model was solving the harder, right problem instead of
-              the easier, wrong one.</td>
-          </tr>
-          <tr class="grp"><td colspan="2">AI Engineering</td></tr>
-          <tr>
-            <td>Reproducible experiments</td>
-            <td>Built the bias correction as a configuration flag, so both versions
-              run from identical code and can be compared directly rather than
-              edited between runs.</td>
-          </tr>
-          <tr>
-            <td>Pipeline staging</td>
-            <td>Separated slow satellite processing from fast rendering, so changing
-              a layout takes seconds instead of re-running twelve months of
-              imagery queries.</td>
-          </tr>
-          <tr>
-            <td>Automated diagnostics</td>
-            <td>Wrote reports that print effect direction and seasonal breakdowns on
-              every run, so the model's claims get checked without anyone
-              remembering to check them.</td>
-          </tr>
-        </tbody>
-      </table>
-      <p class="tbl-note" style="margin-top:1.4rem">Stack &mdash; Python &middot;
-        scikit-learn &middot; Google Earth Engine &middot; Sentinel-2 &middot;
-        Landsat 8 &middot; NLCD &middot; GBIF and eBird APIs &middot; Folium
-        &middot; Git / GitHub Pages</p>
+      <span class="eyebrow">Skills Applied</span>
+      <dl class="skills-strip">
+        <dt>AI Modeling</dt>
+        <dd>Sampling bias correction<span class="sep">/</span>Feature
+          interpretation<span class="sep">/</span>Evaluation judgment</dd>
+        <dt>AI Engineering</dt>
+        <dd>Reproducible experiments<span class="sep">/</span>Pipeline
+          staging<span class="sep">/</span>Automated diagnostics</dd>
+      </dl>
+      <p class="tbl-note" style="margin-top:1.6rem">Python &middot; scikit-learn
+        &middot; Google Earth Engine &middot; Sentinel-2 &middot; Landsat 8
+        &middot; NLCD &middot; GBIF and eBird APIs &middot; Folium &middot;
+        Git / GitHub Pages</p>
     </div>
   </section>
 
@@ -562,6 +545,59 @@
         <a class="btn-lime" href="https://genellzuciya-dev.github.io/housesparrow/sparrow_animation.html">Open the animation</a>
         <a class="btn-ghost" href="https://genellzuciya-dev.github.io/housesparrow/sparrow_seasonal.html">Seasonal comparison &rarr;</a>
         <a class="btn-ghost" href="https://github.com/genellzuciya-dev/housesparrow">Code &amp; full write-up &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SKILLS IN DETAIL (bottom) ============ -->
+  <section class="reveal">
+    <div class="wrap">
+      <span class="eyebrow">Skills In Detail</span>
+      <h2>What each of those <em>actually meant</em> here</h2>
+      <div class="tbl-wrap">
+      <table class="take">
+        <thead><tr><th>Skill</th><th>What I did with it</th></tr></thead>
+        <tbody>
+          <tr class="grp"><td colspan="2">AI Modeling</td></tr>
+          <tr>
+            <td>Sampling bias correction</td>
+            <td>Replaced randomly placed absence points with target-group background
+              sampling, drawn from other species' records, so the model measured
+              habitat rather than where birdwatchers go.</td>
+          </tr>
+          <tr>
+            <td>Feature interpretation</td>
+            <td>Separated feature importance, which variable a model relies on, from
+              effect direction, whether the animal prefers more or less of it. They
+              answer different questions and are routinely confused.</td>
+          </tr>
+          <tr>
+            <td>Evaluation judgment</td>
+            <td>Read a drop in accuracy from 0.73 to 0.63 correctly &mdash; as evidence
+              the corrected model was solving the harder, right problem instead of
+              the easier, wrong one.</td>
+          </tr>
+          <tr class="grp"><td colspan="2">AI Engineering</td></tr>
+          <tr>
+            <td>Reproducible experiments</td>
+            <td>Built the bias correction as a configuration flag, so both versions
+              run from identical code and can be compared directly rather than
+              edited between runs.</td>
+          </tr>
+          <tr>
+            <td>Pipeline staging</td>
+            <td>Separated slow satellite processing from fast rendering, so changing
+              a layout takes seconds instead of re-running twelve months of
+              imagery queries.</td>
+          </tr>
+          <tr>
+            <td>Automated diagnostics</td>
+            <td>Wrote reports that print effect direction and seasonal breakdowns on
+              every run, so the model's claims get checked without anyone
+              remembering to check them.</td>
+          </tr>
+        </tbody>
+      </table>
       </div>
     </div>
   </section>

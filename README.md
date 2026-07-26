@@ -6,18 +6,11 @@
 
 ## Skills applied
 
-| Skill | What I did with it |
-|---|---|
-| **AI Modeling** | |
-| Sampling bias correction | Replaced randomly placed absence points with target-group background sampling, drawn from other species' records, so the model measured habitat rather than where birdwatchers go. |
-| Feature interpretation | Separated feature importance, which variable a model relies on, from effect direction, whether the animal prefers more or less of it. |
-| Evaluation judgment | Read a drop in accuracy from 0.73 to 0.63 correctly — as evidence the corrected model was solving the harder, right problem. |
-| **AI Engineering** | |
-| Reproducible experiments | Built the bias correction as a configuration flag, so both versions run from identical code and can be compared directly. |
-| Pipeline staging | Separated slow satellite processing from fast rendering, so changing a layout takes seconds instead of re-running twelve months of imagery queries. |
-| Automated diagnostics | Wrote reports that print effect direction and seasonal breakdowns on every run, so the model's claims get checked without anyone remembering to. |
+**AI Modeling** — Sampling bias correction · Feature interpretation · Evaluation judgment
 
-**Stack** — Python · scikit-learn · Google Earth Engine · Sentinel-2 · Landsat 8 · NLCD · GBIF and eBird APIs · Folium · Git / GitHub Pages
+**AI Engineering** — Reproducible experiments · Pipeline staging · Automated diagnostics
+
+Python · scikit-learn · Google Earth Engine · Sentinel-2 · Landsat 8 · NLCD · GBIF and eBird APIs · Folium · Git / GitHub Pages
 
 ---
 
@@ -165,3 +158,18 @@ Everything above is a first day. Here's what would make it real, roughly in orde
 ---
 
 *Code and both interactive maps in this repo. Built in a day; wrong in at least eight documented ways, listed above.*
+
+---
+
+## Skills in detail
+
+| Skill | What I did with it |
+|---|---|
+| **AI Modeling** | |
+| Sampling bias correction | Replaced randomly placed absence points with target-group background sampling, drawn from other species' records, so the model measured habitat rather than where birdwatchers go. |
+| Feature interpretation | Separated feature importance, which variable a model relies on, from effect direction, whether the animal prefers more or less of it. |
+| Evaluation judgment | Read a drop in accuracy from 0.73 to 0.63 correctly — as evidence the corrected model was solving the harder, right problem. |
+| **AI Engineering** | |
+| Reproducible experiments | Built the bias correction as a configuration flag, so both versions run from identical code and can be compared directly. |
+| Pipeline staging | Separated slow satellite processing from fast rendering, so changing a layout takes seconds instead of re-running twelve months of imagery queries. |
+| Automated diagnostics | Wrote reports that print effect direction and seasonal breakdowns on every run, so the model's claims get checked without anyone remembering to. |
