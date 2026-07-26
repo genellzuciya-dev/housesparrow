@@ -75,44 +75,49 @@ The animation isn't decoration. It's the finding. Suitability doesn't just inten
 
 ## What the model actually said
 
-Aggregated across months, land surface temperature came out as the strongest predictor by importance, followed by NDBI (built-up) and impervious surface, with the vegetation indices clustered behind them.
+The first version of this section was wrong, and how it got fixed is the most useful thing in this write-up.
 
-But importance only reports that a variable *matters*. It says nothing about direction. Comparing each driver at sparrow locations against background points gives the other half:
+Feature importance ranks land surface temperature first in every season. But importance only reports that a variable *matters* — it says nothing about direction. To get direction you compare each driver at sparrow locations against your background points, and that means the choice of background points decides the answer.
 
-| Driver | At sparrows | Background | Effect |
-|---|---|---|---|
-| Built density (NLCD) | 0.785 | 0.509 | **+0.61** |
-| NDBI — built-up | −0.015 | 0.046 | **−0.54** |
-| Impervious surface | 0.353 | 0.234 | +0.41 |
-| NDVI — greenness | 0.232 | 0.170 | +0.39 |
-| SAVI | 0.158 | 0.116 | +0.38 |
-| NDRE | 0.148 | 0.103 | +0.37 |
-| Land surface temp | 29.3 °C | 30.4 °C | −0.32 |
-| NDWI | −0.305 | −0.263 | −0.31 |
+Originally those were scattered at random across the bounding box. That sounds neutral. It isn't: random points land on unsurveyed desert mesa, so the model can score well by learning **where birders go** rather than where sparrows live. Replacing them with target-group background — drawn from other bird species' actual records, places somebody demonstrably stood and looked — changed the result:
 
-Three things fall out of this.
+| Driver | Random background | Target-group background |
+|---|---|---|
+| Built density | +0.61 | +0.47 |
+| Impervious surface | +0.41 | +0.29 |
+| Land surface temp | **−0.32** | **+0.35** |
+| NDVI greenness | +0.39 | +0.09 |
+| SAVI | +0.38 | +0.16 |
+| NDBI built-up | −0.54 | −0.16 |
 
-**The birds are in the cooler places, not the hotter ones.** Temperature is the top-ranked driver, but it points down: sparrow locations average about a degree cooler than background. Any story about the heat island being attractive habitat is unsupported.
+Temperature reversed sign. The sparrow values never moved — same birds, same places — but background temperature dropped from 30.4 °C to 28.3 °C, because unsurveyed desert is hot and surveyed places aren't. Relative to bare mesa, sparrows looked cool-seeking. Relative to where people actually go, they're in the warm spots. And the vegetation preference, which had looked strong, mostly evaporated: birders go to green places.
 
-**The two built-up measures disagree in sign, and the disagreement is the finding.** NLCD built density says strongly developed. NDBI, the spectral built-up index, says the opposite. Both are correct — they measure different things. NDBI keys on dry, bare, unvegetated ground, and in a high-desert basin that describes the undeveloped mesa better than it describes a neighborhood. In this landscape NDBI is functionally a dryness index wearing an urban label. Anyone reading only the importance ranking would have concluded "sparrows like built-up areas" from a feature that was pointing at the desert.
+**The first answer was largely a map of birdwatchers.**
 
-**All three vegetation indices run positive.** Developed, planted, irrigated — and therefore cooler than the bare ground surrounding it. The urban oasis, not the heat island.
+### The real result: two behaviours, not one
 
-(NDWI reading lower is consistent rather than contradictory: over vegetation, high NIR drives NDWI strongly negative, so more negative means more vegetation here.)
+Splitting direction by season shows something an annual average hides completely:
 
-Two caveats worth stating plainly. The eight features are heavily correlated, and RandomForest impurity importance splits credit across correlated inputs somewhat arbitrarily — read the broad pattern, not the exact ranking. And impurity importance is computed on training data, which inflates it; permutation importance on a held-out fold is the honest version.
+| | winter | spring | summer | fall |
+|---|---|---|---|---|
+| Land surface temp | +0.36 | +0.42 | +0.28 | +0.35 |
+| NDVI greenness | **+0.41** | **−0.19** | +0.08 | +0.06 |
+| NDRE veg health | +0.42 | −0.13 | +0.14 | +0.14 |
+| SAVI | +0.46 | −0.11 | +0.13 | +0.15 |
 
-Seasonal AUC ran 0.73–0.83, with summer the weakest despite having nearly the most data. Fair, not excellent. Worth remembering when reading any single month's map.
+The thermal association is nearly flat across the year. In a city where July ground temperatures are punishing, these birds never move to the cool blocks.
 
----
+Vegetation does the opposite. Sparrows crowd into green in winter and ignore it by spring. That reads as scarcity: in a high-desert winter the only green is irrigated or evergreen, so it's rare and worth competing for; by spring the whole basin greens up, green stops distinguishing anywhere from anywhere, and the signal dissolves. (Those four indices come from overlapping bands and are heavily correlated — one signal confirmed four ways, not four independent findings.)
+
+Summer flattens everything else. Impervious lands at exactly 0.00, built density falls to +0.18 from +0.62 in spring, and summer AUC is the year's weakest at 0.630. For three months the sparrows are nearly indistinguishable from every other bird in town — except that they're still in the warmer places.
+
+Seasonal AUC ran 0.63–0.81 and fell in summer and fall when target-group background replaced random. That drop is the correct direction: the easy wins from empty desert disappeared and the model had to do real work.
 
 ## Points of expansion
 
 Everything above is a first day. Here's what would make it real, roughly in order of how much it would change the answer:
 
-**1. Correct for observer effort.** The problem I opened with is still in there. Summer has far more records than winter, and it's not because there are more sparrows — it's because more people are outside with binoculars. Right now the model can't distinguish habitat preference from birder behavior, and the features most exposed are exactly the ones that came out on top: built-up and impervious. People bird near people.
-
-The standard fix is **target-group background sampling** — draw pseudo-absence points from the occurrence records of *other* bird species in the same month and region, rather than at random. Observer effort then exists in both classes and largely cancels out. This is the single highest-leverage change available.
+**1. Explain the summer collapse.** Summer AUC is 0.630 and nearly every driver flattens toward zero. Either the birds genuinely disperse after breeding, or three months of peak birding saturate the map so thoroughly that sparrow records and target-group records describe the same places. Those are very different findings and the current data can't separate them.
 
 **2. Use eBird complete checklists.** The stronger version: zero-fill complete checklists into genuine detection/non-detection data, carrying duration, distance traveled, observer count, and time of day as effort covariates. Train with them, hold them fixed at prediction time. That converts the whole thing from presence-only inference to something much closer to a real survey.
 

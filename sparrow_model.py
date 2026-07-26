@@ -43,6 +43,15 @@ ABQ = {"min_lat": 34.95, "max_lat": 35.25, "min_lon": -106.75, "max_lon": -106.4
 CITY_CENTER = (35.0844, -106.6504)   # downtown ABQ
 RANDOM_SEED = 42
 
+# Target-group background sampling (Phillips et al. 2009).
+# True  = draw absence points from where OTHER BIRDS were recorded, so that
+#         observer effort appears in both classes and cancels out.
+# False = old behaviour, uniform random points across the bbox.
+# Flip this to compare the two; the direction table will show how much moved.
+USE_TARGET_GROUP = True
+TARGET_GROUP_TAXON = 212          # GBIF key for class Aves (all birds)
+HOUSE_SPARROW_TAXON = 5231190     # excluded from the target group
+
 
 # ---------------------------------------------------------------- 1. FETCH
 # --- seasons: month -> season label. ABQ has strong seasonality. ---
@@ -188,6 +197,56 @@ def fetch_ebird_occurrences(days_back=30, radius_km=50):
         return []
 
 
+def fetch_target_group(per_month=300):
+    """Occurrence records for ALL OTHER BIRDS in the same box, month by month.
+
+    This is the heart of target-group background sampling. The problem with
+    random background points is that they represent places nobody ever looked,
+    so the model can learn "birders go here" and call it "sparrows live here."
+
+    Records of other bird species mark places where somebody WAS looking and
+    did not report a house sparrow. Using those as the background means
+    observer effort is present in both classes and largely divides out,
+    leaving habitat preference behind.
+
+    Returns {month: [(lat, lon), ...]} with house sparrow records removed.
+    """
+    url = "https://api.gbif.org/v1/occurrence/search"
+    print("\nFetching TARGET GROUP (all other birds) from GBIF, month by month...")
+    print("  these become the background points, replacing random ones")
+    pool = {m: [] for m in range(1, 13)}
+    try:
+        for mo in range(1, 13):
+            params = {
+                "taxonKey": TARGET_GROUP_TAXON,
+                "decimalLatitude": f"{ABQ['min_lat']},{ABQ['max_lat']}",
+                "decimalLongitude": f"{ABQ['min_lon']},{ABQ['max_lon']}",
+                "hasCoordinate": "true",
+                "month": mo,
+                "limit": per_month,
+            }
+            r = requests.get(url, params=params, timeout=30)
+            r.raise_for_status()
+            for rec in r.json().get("results", []):
+                la, lo = rec.get("decimalLatitude"), rec.get("decimalLongitude")
+                # drop house sparrows -- they are the presence class, not background
+                if rec.get("speciesKey") == HOUSE_SPARROW_TAXON:
+                    continue
+                if "Passer domesticus" in str(rec.get("scientificName", "")):
+                    continue
+                if la and lo:
+                    pool[mo].append((la, lo))
+            pool[mo] = list({p for p in pool[mo]})
+        spread = " ".join(f"{m:02d}:{len(pool[m])}" for m in range(1, 13))
+        total = sum(len(v) for v in pool.values())
+        print(f"  got {total} target-group points")
+        print(f"  monthly spread  {spread}")
+        return pool
+    except Exception as e:
+        print(f"  target-group fetch failed ({e}); falling back to random background.")
+        return {m: [] for m in range(1, 13)}
+
+
 def _synthetic_presence(n=300):
     """Fallback if offline: sparrows cluster near the urban center."""
     rng = np.random.default_rng(RANDOM_SEED)
@@ -197,11 +256,45 @@ def _synthetic_presence(n=300):
 
 
 # ------------------------------------------------------- 2. PSEUDO-ABSENCE
-def make_pseudo_absence(presence, n=None):
-    """Random background points across the bbox = 'available but not recorded'.
-    Standard in presence-only SDMs (MaxEnt-style)."""
+def make_pseudo_absence(presence, n=None, pool=None, label=""):
+    """Background points -- the 'available but not occupied' class.
+
+    TWO MODES:
+
+    1. TARGET GROUP (preferred, used when `pool` has enough points).
+       Background is drawn from recorded sightings of OTHER bird species.
+       Those are places a person demonstrably visited and looked at birds
+       without reporting a house sparrow. Because both classes now carry the
+       same observer-effort signal, the model can no longer win by learning
+       where birders go -- that cancels -- and what is left is habitat.
+       Phillips et al. 2009, Ecological Applications 19(1).
+
+    2. UNIFORM RANDOM (fallback). Points scattered across the bounding box,
+       including places nobody has ever surveyed. Simple, standard, and
+       silently conflates "no sparrow here" with "nobody looked here."
+
+    Points coinciding with presence records are removed from the pool first.
+    """
     rng = np.random.default_rng(RANDOM_SEED)
     n = n or len(presence)
+
+    if USE_TARGET_GROUP and pool:
+        pres_keys = {(round(la, 4), round(lo, 4)) for la, lo in presence}
+        cand = [p for p in pool
+                if (round(p[0], 4), round(p[1], 4)) not in pres_keys]
+        # need a usable pool; too few and the background is degenerate
+        if len(cand) >= max(30, n // 4):
+            take = min(n, len(cand))
+            idx = rng.choice(len(cand), size=take, replace=False)
+            picked = [cand[i] for i in idx]
+            if label:
+                print(f"    background [{label}]: {len(picked)} target-group pts "
+                      f"(from {len(cand)} available)")
+            return picked
+        if label:
+            print(f"    background [{label}]: only {len(cand)} target-group pts "
+                  f"-- falling back to random")
+
     lat = rng.uniform(ABQ["min_lat"], ABQ["max_lat"], n)
     lon = rng.uniform(ABQ["min_lon"], ABQ["max_lon"], n)
     return list(zip(lat, lon))
@@ -470,6 +563,35 @@ DRIVERS = ["built_density", "impervious", "temperature",
            "ndbi",   # built-up (SWIR-NIR)       -> impervious from spectra
            "ndre",   # red-edge (NIR-RedEdge)    -> vegetation health/stress
            "savi"]   # soil-adjusted vegetation  -> better in sparse desert
+
+
+def direction_report(df, label="", verbose=True):
+    """Which WAY does each driver push? Importance says how much a variable
+    matters; this says whether the birds sit at HIGHER or LOWER values of it.
+
+    Compares each driver at presence points vs. pseudo-absence points and
+    returns a signed standardized effect (Cohen's d):
+        d > 0  -> sparrows are at HIGHER values than background
+        d < 0  -> sparrows are at LOWER values than background
+        |d| < 0.2 negligible | ~0.5 moderate | > 0.8 large
+    """
+    pres = df[df["present"] == 1]
+    absn = df[df["present"] == 0]
+    rows = {}
+    for k in DRIVERS:
+        p, a = pres[k], absn[k]
+        sp = np.sqrt(((len(p) - 1) * p.var(ddof=1) +
+                      (len(a) - 1) * a.var(ddof=1)) /
+                     max(len(p) + len(a) - 2, 1))
+        d = float((p.mean() - a.mean()) / sp) if sp > 0 else 0.0
+        rows[k] = {"presence": float(p.mean()),
+                   "background": float(a.mean()), "d": d}
+    if verbose:
+        top = sorted(rows.items(), key=lambda r: -abs(r[1]["d"]))[:3]
+        bits = ", ".join(f"{k} {'+' if v['d'] > 0 else '-'}{abs(v['d']):.2f}"
+                         for k, v in top)
+        print(f"    direction [{label}]: {bits}")
+    return rows
 
 
 def train(df, label=""):
@@ -947,6 +1069,8 @@ def render_seasonal_compare(season_models, season_presence, season_importances, 
 def main():
     raw, year_span = fetch_sparrow_occurrences()   # (lat,lon,month,year), span
     ebird = fetch_ebird_occurrences()              # (lat,lon,month)
+    tg_pool = (fetch_target_group() if USE_TARGET_GROUP
+               else {m: [] for m in range(1, 13)})
     print(f"\n{len(raw)} dated GBIF points + {len(ebird)} eBird points")
     if year_span[0]:
         print(f"Sighting years span {year_span[0]}\u2013{year_span[1]}; "
@@ -969,12 +1093,14 @@ def main():
     print(f"\nTraining per-month models on {DRIVER_YEAR} monthly drivers...")
     month_models = {}
     _all_importances = []
+    _all_directions = []
     for m in range(1, 13):
         pres = month_presence[m]
         if len(pres) < 12:
             print(f"  [{DRIVER_YEAR}-{m:02d}] only {len(pres)} sightings — skip.")
             continue
-        absence = make_pseudo_absence(pres)
+        absence = make_pseudo_absence(pres, pool=tg_pool.get(m),
+                                      label=f"{DRIVER_YEAR}-{m:02d}")
         if USE_EARTH_ENGINE:
             pres_d = ee_sample_points_month(pres, m)
             abs_d = ee_sample_points_month(absence, m)
@@ -991,6 +1117,7 @@ def main():
         if model is not None:
             month_models[m] = model
             _all_importances.append(imp)
+            _all_directions.append((m, direction_report(df, label=f"{DRIVER_YEAR}-{m:02d}")))
 
     if not month_models:
         print("No month had enough sightings to model.")
@@ -1015,6 +1142,70 @@ def main():
             print(f"  {labels.get(k, k):<32} {v:.3f} {bar}")
         winner = max(agg, key=agg.get)
         print(f"\n  \u2192 Strongest predictor: {labels.get(winner, winner)}")
+
+    # === AND IN WHICH DIRECTION? averaged across months ===
+    _bg_mode = ("TARGET-GROUP (other birds' records)" if USE_TARGET_GROUP
+                else "UNIFORM RANDOM across the bbox")
+    print(f"\n  [background points: {_bg_mode}]")
+    if _all_directions:
+        print("\n" + "=" * 66)
+        print("DO SPARROWS SIT AT HIGH OR LOW VALUES? (avg across months)")
+        print("=" * 66)
+        print(f"  {'driver':<26} {'at sparrows':>12} {'background':>12} {'effect':>8}")
+        agg_d = {}
+        for k in DRIVERS:
+            agg_d[k] = {
+                "presence":   np.mean([r[k]["presence"] for _, r in _all_directions]),
+                "background": np.mean([r[k]["background"] for _, r in _all_directions]),
+                "d":          np.mean([r[k]["d"] for _, r in _all_directions]),
+            }
+        for k, v in sorted(agg_d.items(), key=lambda x: -abs(x[1]["d"])):
+            d = v["d"]
+            word = "HIGHER" if d > 0 else "LOWER "
+            mag = ("large " if abs(d) > 0.8 else
+                   "moderate" if abs(d) > 0.5 else
+                   "small " if abs(d) > 0.2 else "none  ")
+            print(f"  {labels.get(k, k):<26} {v['presence']:>12.3f} "
+                  f"{v['background']:>12.3f} {d:>+8.2f}   {word} ({mag})")
+        print("\n  Read this as: sparrow locations sit at HIGHER/LOWER values of each")
+        print("  driver than the background points do. This is the DIRECTION that")
+        print("  feature importance alone cannot tell you.")
+        print("  NOTE: a flat effect can still hide a preferred BAND (suitable in the")
+        print("  middle, poor at both ends). Partial dependence plots show that shape.")
+
+    # === DOES THE DIRECTION FLIP BY SEASON? ===
+    # An annual average hides seasonal reversal: a bird that seeks warmth in
+    # January and shade in July averages out to roughly nothing. This splits
+    # the same numbers by season so a reversal becomes visible.
+    if _all_directions:
+        print("\n" + "=" * 66)
+        print("DOES THE DIRECTION FLIP BY SEASON?  (effect size per season)")
+        print("=" * 66)
+        order = ["winter", "spring", "summer", "fall"]
+        by_season = {s: [] for s in order}
+        for mo, rep in _all_directions:
+            by_season[MONTH_TO_SEASON[mo]].append(rep)
+
+        head = "  {:<26}".format("driver") + "".join(f"{s:>9}" for s in order)
+        print(head)
+        for k in sorted(DRIVERS,
+                        key=lambda kk: -max(
+                            abs(np.mean([r[kk]["d"] for r in by_season[s]]))
+                            for s in order if by_season[s])):
+            cells = ""
+            vals = []
+            for s in order:
+                if by_season[s]:
+                    v = float(np.mean([r[k]["d"] for r in by_season[s]]))
+                    vals.append(v)
+                    cells += f"{v:>+9.2f}"
+                else:
+                    cells += f"{'--':>9}"
+            flip = "   <-- FLIPS" if vals and min(vals) < -0.15 < 0.15 < max(vals) else ""
+            print(f"  {labels.get(k, k):<26}{cells}{flip}")
+        print("\n  A row with both + and - values reverses across the year.")
+        print("  That is a seasonal behaviour change, not a fixed preference,")
+        print("  and the annual average above will have hidden most of it.")
         print("    (This is the ecological finding: the spectral 'lens' the")
         print("     sparrows respond to most, learned from the data.)")
 
@@ -1030,7 +1221,11 @@ def main():
         season_presence[s] = pres
         if len(pres) < 15:
             continue
-        absence = make_pseudo_absence(pres)
+        season_pool = []
+        for _m in SEASONS[s]:
+            season_pool.extend(tg_pool.get(_m, []))
+        season_pool = list({p for p in season_pool})
+        absence = make_pseudo_absence(pres, pool=season_pool, label=s)
         df = build_frame_for_season(pres, absence, s)
         model, auc, imp = train(df, label=s)
         if model is not None:
