@@ -102,22 +102,46 @@
   text-transform: uppercase; color: var(--faint); display: flex; flex-wrap: wrap; gap: 0.6rem 1.6rem;
 }
 
-/* ---------- takeaways (opens every case study) ---------- */
-#nls-sparrow .takeaways { display: grid; grid-template-columns: 1fr 1fr; gap: 3.5rem; }
-#nls-sparrow .take-col h3 {
-  font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.24em;
-  text-transform: uppercase; color: var(--lime); margin: 0 0 1.1rem; font-weight: 400;
+/* ---------- tables ---------- */
+#nls-sparrow table { width: 100%; border-collapse: collapse; }
+#nls-sparrow th {
+  font-family: 'Space Mono', monospace; font-size: 0.57rem; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--lime); font-weight: 400; text-align: right;
+  padding: 0 0 0.9rem; border-bottom: 1px solid var(--border); white-space: nowrap;
 }
-#nls-sparrow .take-col ul { list-style: none; margin: 0; padding: 0; }
-#nls-sparrow .take-col li {
-  font-family: 'Instrument Serif', serif; font-size: 1rem; line-height: 1.55;
-  color: var(--cream); padding: 0 0 0.85rem 1.4rem; position: relative;
+#nls-sparrow th:first-child { text-align: left; }
+#nls-sparrow td {
+  padding: 0.9rem 0; border-bottom: 1px solid rgba(182,255,74,0.09);
+  vertical-align: top;
 }
-#nls-sparrow .take-col li::before {
-  content: ""; position: absolute; left: 0; top: 0.62em;
-  width: 5px; height: 5px; border-radius: 50%; background: var(--lime);
+
+/* grouped takeaways table */
+#nls-sparrow table.take { margin-top: 2rem; }
+#nls-sparrow table.take td { font-family: 'Instrument Serif', serif; }
+#nls-sparrow table.take td:first-child { font-size: 1rem; color: var(--cream); padding-right: 2.5rem; width: 46%; }
+#nls-sparrow table.take td:last-child { font-size: 0.95rem; color: var(--muted); line-height: 1.55; }
+#nls-sparrow table.take tr.grp td {
+  font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.24em;
+  text-transform: uppercase; color: var(--lime); padding: 2rem 0 0.7rem;
+  border-bottom: 1px solid var(--border);
 }
-#nls-sparrow .take-col li span { color: var(--muted); }
+#nls-sparrow table.take tr.grp:first-child td { padding-top: 0.6rem; }
+
+/* numeric data tables */
+#nls-sparrow table.data { margin-top: 2.2rem; }
+#nls-sparrow table.data td {
+  font-family: 'Space Mono', monospace; font-size: 0.78rem; color: var(--cream);
+  text-align: right; font-variant-numeric: tabular-nums;
+}
+#nls-sparrow table.data td:first-child {
+  text-align: left; font-family: 'Instrument Serif', serif; font-size: 0.98rem;
+  color: var(--muted);
+}
+#nls-sparrow table.data .hi { color: var(--lime); }
+#nls-sparrow .tbl-note {
+  font-family: 'Space Mono', monospace; font-size: 0.58rem; line-height: 1.7;
+  color: var(--faint); letter-spacing: 0.03em; margin: 0.9rem 0 0; max-width: none;
+}
 
 /* ---------- SIGNATURE: the year band ---------- */
 #nls-sparrow .band-block { padding-top: 1rem; }
@@ -231,7 +255,12 @@
 /* ---------- responsive ---------- */
 @media (max-width: 860px) {
   #nls-sparrow .wrap { padding: 0 1.5rem; }
-  #nls-sparrow .takeaways { grid-template-columns: 1fr; gap: 2.2rem; }
+  #nls-sparrow table.take td { display: block; width: auto; padding-right: 0; }
+  #nls-sparrow table.take td:first-child { padding-bottom: 0.3rem; border-bottom: none; }
+  #nls-sparrow table.take thead { display: none; }
+  #nls-sparrow table.data { font-size: 0.7rem; }
+  #nls-sparrow table.data td { font-size: 0.68rem; padding: 0.7rem 0; }
+  #nls-sparrow table.data td:first-child { font-size: 0.88rem; }
   #nls-sparrow section { padding: 4.5rem 0; }
   #nls-sparrow .hero { padding: 4.5rem 0 3rem; }
   #nls-sparrow .hero .wrap { grid-template-columns: 1fr; gap: 2.8rem; justify-items: start; }
@@ -291,27 +320,37 @@
   <section class="reveal">
     <div class="wrap">
       <span class="eyebrow">What This One Taught Me</span>
-      <div class="takeaways">
-
-        <div class="take-col">
-          <h3>Modeling</h3>
-          <ul>
-            <li>Your negative class defines your question. <span>Changing what &ldquo;absent&rdquo; meant reversed the headline finding.</span></li>
-            <li>Importance says a feature matters. <span>It never says which direction.</span></li>
-            <li>A metric getting worse can mean the problem got honest. <span>AUC fell once the easy wins disappeared.</span></li>
-          </ul>
-        </div>
-
-        <div class="take-col">
-          <h3>Engineering</h3>
-          <ul>
-            <li>Config flags, not commented-out code. <span>One variable, both answers, permanent record.</span></li>
-            <li>Split the expensive stage from the presentation stage. <span>A CSS fix shouldn't cost a satellite pass.</span></li>
-            <li>Diagnostics run every time. <span>Otherwise you're trusting an artifact you never interrogated.</span></li>
-          </ul>
-        </div>
-
-      </div>
+      <table class="take">
+        <thead><tr><th>Lesson</th><th>What proved it</th></tr></thead>
+        <tbody>
+          <tr class="grp"><td colspan="2">AI Modeling</td></tr>
+          <tr>
+            <td>Your negative class defines your question.</td>
+            <td>Changing what &ldquo;absent&rdquo; meant reversed the headline finding.</td>
+          </tr>
+          <tr>
+            <td>Importance says a feature matters, never which direction.</td>
+            <td>Temperature ranked first all year while pointing the opposite way.</td>
+          </tr>
+          <tr>
+            <td>A metric getting worse can mean the problem got honest.</td>
+            <td>AUC fell from 0.73 to 0.63 once the easy wins disappeared.</td>
+          </tr>
+          <tr class="grp"><td colspan="2">AI Engineering</td></tr>
+          <tr>
+            <td>Config flags, not commented-out code.</td>
+            <td>One variable, both answers, permanent record of each.</td>
+          </tr>
+          <tr>
+            <td>Split the expensive stage from the presentation stage.</td>
+            <td>A CSS fix shouldn't cost a satellite pass.</td>
+          </tr>
+          <tr>
+            <td>Diagnostics run every time, unprompted.</td>
+            <td>Otherwise you're trusting an artifact you never interrogated.</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </section>
 
@@ -368,23 +407,29 @@
           together and both disappear.</p>
       </div>
       <div>
-        <p>Comparing sparrow locations against places birders actually surveyed,
-          the thermal association holds almost perfectly steady across the year
-          &mdash; <strong>+0.36, +0.42, +0.28, +0.35</strong> from winter through
-          fall. In a desert city where July ground temperatures are punishing,
-          they never retreat to the cool blocks.</p>
-        <p>Vegetation does the opposite. Greenness runs <strong>+0.41 in winter
-          and &minus;0.19 by spring</strong>, and all four vegetation indices
-          agree. In a high-desert winter the only green is irrigated or evergreen
-          &mdash; bosque cottonwood, watered lawn, juniper &mdash; so it is scarce,
-          and scarcity makes it worth competing for. By spring the whole basin
-          greens up, green no longer distinguishes anywhere from anywhere, and
-          the signal dissolves.</p>
-        <p>Summer flattens everything else. Impervious surface lands at exactly
-          zero, built density falls to +0.18 from +0.62 in spring, and summer is
-          the weakest model of the year. <strong>For three months the sparrows
-          are nearly indistinguishable from every other bird in town &mdash;
-          except that they are still in the warmer places.</strong></p>
+        <p>Measured against places birders actually surveyed, the thermal
+          association barely moves all year. Vegetation does the opposite.</p>
+        <table class="data">
+          <thead>
+            <tr><th>Effect size</th><th>Winter</th><th>Spring</th><th>Summer</th><th>Fall</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Warmth</td><td>+0.36</td><td>+0.42</td><td>+0.28</td><td>+0.35</td></tr>
+            <tr><td>Greenness</td><td class="hi">+0.41</td><td class="hi">&minus;0.19</td><td>+0.08</td><td>+0.06</td></tr>
+            <tr><td>Development</td><td>+0.56</td><td>+0.62</td><td>+0.18</td><td>+0.50</td></tr>
+            <tr><td>Pavement</td><td>+0.27</td><td>+0.61</td><td>0.00</td><td>+0.26</td></tr>
+          </tbody>
+        </table>
+        <p class="tbl-note">Positive = sparrows sit above the surveyed background.
+          Greenness is the only row that reverses.</p>
+        <p style="margin-top:2rem">In a high-desert winter the only green is
+          irrigated or evergreen, so it's scarce and worth competing for. By spring
+          the whole basin greens up, green stops distinguishing anywhere from
+          anywhere, and the signal dissolves.</p>
+        <p>Summer flattens everything else &mdash; pavement lands at exactly zero.
+          <strong>For three months the sparrows are nearly indistinguishable from
+          every other bird in town, except that they're still in the warmer
+          places.</strong></p>
       </div>
     </div>
   </section>
@@ -395,23 +440,34 @@
       <div>
         <span class="eyebrow">03 / Two Useful Mistakes</span>
         <h2>Both times, the model was <em>fluent and wrong.</em></h2>
+        <p class="pull">The first answer was a map of birdwatchers.</p>
       </div>
       <div>
-        <p>The first environmental layers were synthetic &mdash; placeholder math,
-          standing in while the pipeline came together. The output rendered as a
-          perfect radial ripple, clean rings spreading from the city center.
-          Sparrows do not live in concentric rings. Nothing was broken: the model
-          had faithfully learned my placeholder and reported it back as ecology.</p>
-        <p>The second was subtler and nearly got published. Absence points were
-          scattered at random across the map, which sounds neutral and is not
-          &mdash; random points land on unsurveyed desert, so the model could win
-          by learning <em>where birders go</em>. Drawing background from other
-          species' actual records instead flipped the temperature result from
-          negative to positive and collapsed a confident vegetation finding from
-          +0.39 to +0.09.</p>
-        <p><strong>The first answer was a map of birdwatchers.</strong> Nothing in
-          the training loop flagged either mistake. Domain knowledge isn't a
-          complement to modeling &mdash; it's the error-detection layer.</p>
+        <p>The first environmental layers were placeholder math. The output
+          rendered as a perfect radial ripple &mdash; clean rings spreading from
+          the city center. Sparrows do not live in concentric rings. The model had
+          faithfully learned my placeholder and reported it back as ecology.</p>
+        <p>The second nearly got published. Absence points were scattered at
+          random, which sounds neutral and isn't: random points land on unsurveyed
+          desert, so the model could win by learning where <em>birders</em> go.
+          Drawing background from other species' actual records instead:</p>
+        <table class="data">
+          <thead>
+            <tr><th>Effect size</th><th>Random</th><th>Target-group</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Land surface temp</td><td>&minus;0.32</td><td class="hi">+0.35</td></tr>
+            <tr><td>NDVI greenness</td><td>+0.39</td><td class="hi">+0.09</td></tr>
+            <tr><td>Built density</td><td>+0.61</td><td>+0.47</td></tr>
+            <tr><td>Impervious</td><td>+0.41</td><td>+0.29</td></tr>
+          </tbody>
+        </table>
+        <p class="tbl-note">Sparrow values never moved. The background did &mdash;
+          unsurveyed desert runs 2&deg;C hotter than places people go.</p>
+        <p style="margin-top:2rem">Temperature reversed sign. A confident vegetation
+          finding collapsed to nothing. <strong>Nothing in the training loop flagged
+          either mistake</strong> &mdash; domain knowledge isn't a complement to
+          modeling, it's the error-detection layer.</p>
       </div>
     </div>
   </section>

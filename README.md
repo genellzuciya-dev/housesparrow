@@ -6,15 +6,16 @@
 
 ## What this one taught me
 
-**Modeling**
-- Your negative class defines your question — changing what "absent" meant reversed the headline finding.
-- Importance says a feature matters. It never says which direction.
-- A metric getting worse can mean the problem got honest — AUC fell once the easy wins disappeared.
-
-**Engineering**
-- Config flags, not commented-out code — one variable, both answers, permanent record.
-- Split the expensive stage from the presentation stage — a CSS fix shouldn't cost a satellite pass.
-- Diagnostics run every time, or you're trusting an artifact you never interrogated.
+| Lesson | What proved it |
+|---|---|
+| **AI Modeling** | |
+| Your negative class defines your question. | Changing what "absent" meant reversed the headline finding. |
+| Importance says a feature matters, never which direction. | Temperature ranked first all year while pointing the opposite way. |
+| A metric getting worse can mean the problem got honest. | AUC fell from 0.73 to 0.63 once the easy wins disappeared. |
+| **AI Engineering** | |
+| Config flags, not commented-out code. | One variable, both answers, permanent record of each. |
+| Split the expensive stage from the presentation stage. | A CSS fix shouldn't cost a satellite pass. |
+| Diagnostics run every time, unprompted. | Otherwise you're trusting an artifact you never interrogated. |
 
 ---
 
