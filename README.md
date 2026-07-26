@@ -75,15 +75,34 @@ The animation isn't decoration. It's the finding. Suitability doesn't just inten
 
 ## What the model actually said
 
-Aggregated across months, land surface temperature came out as the strongest predictor, followed by NDBI (built-up) and impervious surface, with the vegetation indices clustered behind them.
+Aggregated across months, land surface temperature came out as the strongest predictor by importance, followed by NDBI (built-up) and impervious surface, with the vegetation indices clustered behind them.
 
-Read plainly: in a high-desert city, this bird tracks **thermal structure and the built environment** more than greenness. The urban heat island isn't a stressor it tolerates. It looks like habitat.
+But importance only reports that a variable *matters*. It says nothing about direction. Comparing each driver at sparrow locations against background points gives the other half:
 
-Two caveats I'd rather state than have someone find:
+| Driver | At sparrows | Background | Effect |
+|---|---|---|---|
+| Built density (NLCD) | 0.785 | 0.509 | **+0.61** |
+| NDBI — built-up | −0.015 | 0.046 | **−0.54** |
+| Impervious surface | 0.353 | 0.234 | +0.41 |
+| NDVI — greenness | 0.232 | 0.170 | +0.39 |
+| SAVI | 0.158 | 0.116 | +0.38 |
+| NDRE | 0.148 | 0.103 | +0.37 |
+| Land surface temp | 29.3 °C | 30.4 °C | −0.32 |
+| NDWI | −0.305 | −0.263 | −0.31 |
 
-The eight features are heavily correlated with each other, and RandomForest impurity importance splits credit across correlated inputs somewhat arbitrarily. Read the broad pattern, not the exact ranking.
+Three things fall out of this.
 
-And impurity importance is computed on training data, which inflates it. Permutation importance on a held-out fold is the honest version. That's on the list below.
+**The birds are in the cooler places, not the hotter ones.** Temperature is the top-ranked driver, but it points down: sparrow locations average about a degree cooler than background. Any story about the heat island being attractive habitat is unsupported.
+
+**The two built-up measures disagree in sign, and the disagreement is the finding.** NLCD built density says strongly developed. NDBI, the spectral built-up index, says the opposite. Both are correct — they measure different things. NDBI keys on dry, bare, unvegetated ground, and in a high-desert basin that describes the undeveloped mesa better than it describes a neighborhood. In this landscape NDBI is functionally a dryness index wearing an urban label. Anyone reading only the importance ranking would have concluded "sparrows like built-up areas" from a feature that was pointing at the desert.
+
+**All three vegetation indices run positive.** Developed, planted, irrigated — and therefore cooler than the bare ground surrounding it. The urban oasis, not the heat island.
+
+(NDWI reading lower is consistent rather than contradictory: over vegetation, high NIR drives NDWI strongly negative, so more negative means more vegetation here.)
+
+Two caveats worth stating plainly. The eight features are heavily correlated, and RandomForest impurity importance splits credit across correlated inputs somewhat arbitrarily — read the broad pattern, not the exact ranking. And impurity importance is computed on training data, which inflates it; permutation importance on a held-out fold is the honest version.
+
+Seasonal AUC ran 0.73–0.83, with summer the weakest despite having nearly the most data. Fair, not excellent. Worth remembering when reading any single month's map.
 
 ---
 
@@ -107,7 +126,7 @@ The standard fix is **target-group background sampling** — draw pseudo-absence
 
 **7. A second species.** House sparrow is a generalist commensal. Running the identical pipeline on a specialist — something piñon-juniper dependent — and comparing which spectral lens each one loads onto would turn a single map into a comparative finding.
 
-**8. The design question.** This is where it goes next for me. If thermal structure is what a synanthropic bird is reading in a desert city, then a suitability surface is also a map of **where the built environment is doing thermal work** — and the places where sparrows thrive and people suffer are probably the same places. That's a biomimicry brief hiding inside a species distribution model, and it's the version of this work I actually want to build.
+**8. The design question.** This is where it goes next for me. If what a synanthropic bird tracks in a desert city is the *irrigated, planted, shaded* fraction of the built environment, then a suitability surface is also a map of **where the city is successfully buffering its own heat** — and its inverse is a map of where it isn't. Those are the blocks where people suffer in July. That's a biomimicry brief hiding inside a species distribution model, and it's the version of this work I actually want to build.
 
 ---
 
